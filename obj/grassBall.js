@@ -28,7 +28,7 @@ grassBall.prototype= new worldObject;
 		{
 			for (var longi=0; longi <= tetaMax; longi+=pasLong)
             {
-				vertices = vertices.concat(pol2Cart(longi, lat)); //A
+				vertices = vertices.concat(pol2Cart(longi, lat, 1)); //A
 
 				textureCoords = textureCoords.concat([10*longi/tetaMax, 10*(90+lat)/(90+phiMax)]);
 				if(longi != tetaMax)
