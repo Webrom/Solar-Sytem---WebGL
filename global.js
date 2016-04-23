@@ -11,7 +11,7 @@ var mvMatrixStack = [];
 var pMatrix = mat4.create();
 
 //textures
-var texture0;
+var textures = [];
 
 //interaction
 var drawStyle;
@@ -165,21 +165,28 @@ function setMatrixUniforms()
 //TEXTURES
 function initTexture()
 {
-    texture0 = gl.createTexture();
-    texture0.image = new Image();
-    texture0.image.onload = function()
-    {
-        handleLoadedTexture(texture0)
-    }
+    createTexture(0,"./img/sun.jpg");
+    createTexture(1,"./img/earth.jpg");
+    createTexture(2,"./img/moon.gif");
+    //textures[0].image.src = "./img/sun.jpg";
+    //textures[1].image.src = "./img/earth.jpg";
+    //textures[2].image.src = "./img/moon.gif";
+}
 
-    texture0.image.src = "./img/moon.gif"; // note : croos origin problem with chrome outside webserver
-    texture0.image.src = "./img/earth.jpg"; // note : croos origin problem with chrome outside webserver
+function createTexture(i,src){
+    textures[i] = gl.createTexture();
+    textures[i].image = new Image();
+    textures[i].image.onload = function()
+    {
+        handleLoadedTexture(textures[i])
+    }
+    textures[i].image.src = src;
 }
 
 function handleLoadedTexture(texture)
 {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.bindTexture(gl.TEXTURE_2D, texture0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
@@ -219,7 +226,7 @@ function drawScene()
     mat4.translate(mvMatrix, [0, 0.0, -10.0]);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture0);
+    gl.bindTexture(gl.TEXTURE_2D, textures[0]);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
 
     rootObject.draw();
@@ -229,27 +236,20 @@ function initWorldObjects()
 {
     var obj = 12;
 
-    rootObject = new triangle(null);
-    rootObject.translate([0,-1,0.5]);
+    rootObject = new sphere(null);
+    rootObject.translate([0,0,0.0]);
     objects.push(rootObject);
+    rootObject.texture = textures[0];
 
-    for (var i=0; i < obj; i++)
-    {
-        var newObject = new triangle(rootObject);
-        objects.push(newObject);
-        newObject.rotate(-i*Math.PI/12, [0,0,1])
-        newObject.translate([2,0,i/100])
-        newObject.scale([1-i/12,1-i/12,1-i/12])
-    }
+    earth = new sphere(rootObject);
+    objects.push(earth);
+    earth.translate([3,0,0]);
+    earth.texture = textures[1];
 
-    var newObject = new square(rootObject);
-    objects.push(newObject);
-    newObject.translate([0,2,0]);
-
-    newObject = new sphere(rootObject);
-    objects.push(newObject);
-    newObject.translate([2,2,0]);
-
+    moon = new sphere(earth);
+    objects.push(moon);
+    moon.translate([2,0,0]);
+    moon.texture = textures[2];
 
     return rootObject;
 }
@@ -282,9 +282,10 @@ function webGLStart() {
 
     //webGL
     initGL(canvas);
-    initShaders()
-    rootObject = initWorldObjects();
+    initShaders();
     initTexture();
+    rootObject = initWorldObjects();
+
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
