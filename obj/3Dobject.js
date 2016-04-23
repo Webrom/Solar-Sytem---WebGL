@@ -3,14 +3,20 @@
 function worldObject(parent)
 {
 	this.localTransformation = mat4.create();
+	this.orbiteMatrice = mat4.create();
+	this.revolutionMatrice = mat4.create();
 	this.children = [];
 	this.vertexPositionBuffer = null;
 	this.vertexTextureCoordBuffer = null;
 	this.vertexIndexBuffer = null;
 	this.toggled = true;
+	this.coefOrbite = 0;
+	this.coefRevolution = 0;
 	// il faudra sans doute ajouter des choses ici pour gérer les nomales
 	this.texture = null;
 	mat4.identity(this.localTransformation);
+	mat4.identity(this.orbiteMatrice);
+	mat4.identity(this.revolutionMatrice);
 	if(parent != null) parent.addChild(this);
 }
 
@@ -26,8 +32,15 @@ worldObject.prototype.translate = function(translation)
 
 worldObject.prototype.rotate = function(rotation, axis)
 {
-	mat4.rotate(this.localTransformation, rotation, axis);
+	mat4.rotate(this.revolutionMatrice, rotation, axis);
 }
+
+worldObject.prototype.orbite = function(rotation, axis)
+{
+	mat4.rotate(this.orbiteMatrice, rotation, axis);
+}
+
+
 
 worldObject.prototype.scale = function(scale)
 {
@@ -46,7 +59,11 @@ worldObject.prototype.draw = function()
 		}
 
 		mvPushMatrix();
+		mat4.multiply(mvMatrix, this.orbiteMatrice);
 		mat4.multiply(mvMatrix, this.localTransformation);
+		mvPushMatrix();
+
+		mat4.multiply(mvMatrix, this.revolutionMatrice);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
 		gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -66,7 +83,7 @@ worldObject.prototype.draw = function()
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
 			gl.drawElements(drawStyle, this.vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 		}
-
+		mvPopMatrix();
 		//draws children
 		for(var i =0; i< this.children.length; i++)
 		{
@@ -76,6 +93,7 @@ worldObject.prototype.draw = function()
 	}
 }
 
+
 worldObject.prototype.animate = function(elapsedTime)
 {
 	//animate children
@@ -83,5 +101,7 @@ worldObject.prototype.animate = function(elapsedTime)
 	{
 		this.children[i].animate(elapsedTime);
 	}
-	this.rotate(0.001*elapsedTime,[0,1,0]); // cette ligne est surement discutable comme animation par défaut!
+
+	this.orbite(0.001*elapsedTime*this.coefOrbite,[0,1,0]); // cette ligne est surement discutable comme animation par défaut!
+	this.rotate(0.001*elapsedTime*this.coefRevolution,[0,1,0]);
 }

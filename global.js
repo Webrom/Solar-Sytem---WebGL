@@ -168,6 +168,7 @@ function initTexture()
     createTexture(0,"./img/sun.jpg");
     createTexture(1,"./img/earth.jpg");
     createTexture(2,"./img/moon.gif");
+    createTexture(3,"./img/mars.jpg");
     //textures[0].image.src = "./img/sun.jpg";
     //textures[1].image.src = "./img/earth.jpg";
     //textures[2].image.src = "./img/moon.gif";
@@ -223,7 +224,7 @@ function drawScene()
     mat4.rotate(mvMatrix, -camHeight, [1, 0, 0]);
 
     mat4.translate(mvMatrix, [camX, 0.0, camZ]);
-    mat4.translate(mvMatrix, [0, 0.0, -10.0]);
+    mat4.translate(mvMatrix, [0, 0.0, -50.0]);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textures[0]);
@@ -237,19 +238,36 @@ function initWorldObjects()
     var obj = 12;
 
     rootObject = new sphere(null);
-    rootObject.translate([0,0,0.0]);
+    rootObject.translate([0,0,0]);
     objects.push(rootObject);
     rootObject.texture = textures[0];
+    rootObject.scale([4,4,4]);
+    rootObject.coefOrbite = 0;
+    rootObject.coefRevolution = 1;
 
-    earth = new sphere(rootObject);
+    var earth = new sphere(rootObject);
     objects.push(earth);
-    earth.translate([3,0,0]);
+    earth.translate([5,0,0]);
     earth.texture = textures[1];
+    earth.scale([0.8,0.8,0.8]);
+    earth.coefOrbite = 0.5;
+    earth.coefRevolution = 2;
 
-    moon = new sphere(earth);
+    var moon = new sphere(earth);
     objects.push(moon);
-    moon.translate([2,0,0]);
+    moon.translate([1.5,0,0]);
     moon.texture = textures[2];
+    moon.scale([0.3,0.3,0.3]);
+    moon.coefOrbite = 8;
+    moon.coefRevolution = 6;
+
+    var mars = new sphere(rootObject);
+    objects.push(mars);
+    mars.translate([8,0,0]);
+    mars.texture = textures[3];
+    mars.scale([0.7,0.7,0.7]);
+    mars.coefOrbite = 3;
+    mars.coefRevolution = 4;
 
     return rootObject;
 }
