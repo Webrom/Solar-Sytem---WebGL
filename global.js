@@ -203,12 +203,12 @@ function degToRad(degrees)
 }
 
 
-function pol2Cart(longi, lat, R)
+function pol2Cart(longi, lat, resLongi, resLat)
 {
     return [
-        R *Math.cos(degToRad(lat))*Math.sin(degToRad(longi)),
-        R * Math.sin(degToRad(lat)),
-        R *Math.cos(degToRad(lat))*Math.cos(degToRad(longi))
+        Math.cos(degToRad(lat))*Math.sin(degToRad(longi)),
+        Math.sin(degToRad(lat)),
+        Math.cos(degToRad(lat))*Math.cos(degToRad(longi))
     ];
 }
 
@@ -236,18 +236,17 @@ function initWorldObjects()
 {
     var obj = 12;
 
-    rootObject = new sphere(null,2);
+    rootObject = new sphere(null);
     rootObject.translate([0,0,0.0]);
     objects.push(rootObject);
     rootObject.texture = textures[0];
-    //rootObject.scale(1);
 
-    var earth = new sphere(rootObject,1);
+    earth = new sphere(rootObject);
     objects.push(earth);
     earth.translate([3,0,0]);
     earth.texture = textures[1];
 
-    var moon = new sphere(earth,1);
+    moon = new sphere(earth);
     objects.push(moon);
     moon.translate([2,0,0]);
     moon.texture = textures[2];

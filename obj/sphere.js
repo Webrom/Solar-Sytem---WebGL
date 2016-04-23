@@ -1,16 +1,16 @@
 sphere.prototype = new worldObject;
-	function sphere(parent,R)
+	function sphere(parent)
 	{
 		this.base = worldObject;
 		this.base(parent);
-		var buffers = this.initBuffers(R);
+		var buffers = this.initBuffers();
 		this.vertexPositionBuffer = buffers[0];
 		this.vertexTextureCoordBuffer = buffers[1];
 		this.vertexIndexBuffer = buffers[2];
 		//il manque surement quelque chose pour les normales ici
 	}
 
-	sphere.prototype.initBuffers = function(R)
+	sphere.prototype.initBuffers = function()
 	{	
 		//il manque le code des normales à ajouter!
 		vertices = [];
@@ -24,7 +24,7 @@ sphere.prototype = new worldObject;
 		{
 			for (var longi=0; longi <= tetaMax; longi+=pasLong)
             {
-				vertices = vertices.concat(pol2Cart(longi, lat, R)); //A
+				vertices = vertices.concat(pol2Cart(longi, lat)); //A
 				//il manque le code des normales à ajouter!
 				textureCoords = textureCoords.concat([longi/tetaMax, (90+lat)/(90+phiMax)]);
 				if(longi != tetaMax)
