@@ -40,6 +40,7 @@ var camHeight = 0;
 //world
 var objects = [];
 var rootObject;
+var skybox;
 
 //geometry
 var pasLat = 3;
@@ -47,6 +48,8 @@ var pasLong = 6;
 var tetaMax = 360;
 var phiMax = 90;
 
+
+var coefRotation = 1;
 
 
 //SHADERS
@@ -169,6 +172,7 @@ function initTexture()
     createTexture(1,"./img/earth.jpg");
     createTexture(2,"./img/moon.gif");
     createTexture(3,"./img/mars.jpg");
+    createTexture(4,"./img/stars.jpg");
     //textures[0].image.src = "./img/sun.jpg";
     //textures[1].image.src = "./img/earth.jpg";
     //textures[2].image.src = "./img/moon.gif";
@@ -218,13 +222,16 @@ function drawScene()
     gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+    mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 1000.0, pMatrix);
     mat4.identity(mvMatrix);
+    gl.disable(gl.DEPTH_TEST);
+    skybox.draw();
+    gl.enable(gl.DEPTH_TEST);
 
     mat4.rotate(mvMatrix, -camHeight, [1, 0, 0]);
 
     mat4.translate(mvMatrix, [camX, 0.0, camZ]);
-    mat4.translate(mvMatrix, [0, 0.0, -50.0]);
+    mat4.translate(mvMatrix, [0, 0.0, -100.0]);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textures[0]);
@@ -237,6 +244,15 @@ function initWorldObjects()
 {
     var obj = 12;
 
+    skybox = new sphere(null);
+    skybox.translate([0,0,0]);
+    objects.push(skybox);
+    skybox.texture = textures[4];
+    //skybox.scale([50,50,50]);
+    skybox.coefOrbite = 0;
+    skybox.coefRevolution = 0;
+
+
     rootObject = new sphere(null);
     rootObject.translate([0,0,0]);
     objects.push(rootObject);
@@ -247,7 +263,7 @@ function initWorldObjects()
 
     var earth = new sphere(rootObject);
     objects.push(earth);
-    earth.translate([5,0,0]);
+    earth.translate([3,0,0]);
     earth.texture = textures[1];
     earth.scale([0.8,0.8,0.8]);
     earth.coefOrbite = 0.5;
@@ -263,7 +279,7 @@ function initWorldObjects()
 
     var mars = new sphere(rootObject);
     objects.push(mars);
-    mars.translate([8,0,0]);
+    mars.translate([5,0,0]);
     mars.texture = textures[3];
     mars.scale([0.7,0.7,0.7]);
     mars.coefOrbite = 3;
@@ -284,7 +300,7 @@ function animate()
         rSquare += (75 * elapsed) / 1000.0;
         rSphere += (50 * elapsed) / 1000.0;
     }
-    rootObject.animate(elapsed);
+    rootObject.animate(elapsed*coefRotation);
     lastTime = timeNow;
 }
 
@@ -367,16 +383,16 @@ function handleKeyDown(event)
     switch(event.keyCode)
     {
         case 37: //left
-            camX++;
+            camX+=10;
             break;
         case 39: //right
-            camX--;
+            camX-=10;
             break;
         case 38: //down
-            camZ++;
+            camZ+=10;
             break;
         case 40: //forward
-            camZ--;
+            camZ-=10;
             break;
         case 33: //pageUp
             camHeight+=degToRad(1);
@@ -415,5 +431,5 @@ function handleClick(checkMesh)
 
 function handleSlider1(sliderValue)
 {
-    //console.log(sliderValue);
+    coefRotation = sliderValue;
 }
