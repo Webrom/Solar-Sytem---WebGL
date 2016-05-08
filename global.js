@@ -51,6 +51,8 @@ var phiMax = 90;
 
 var coefRotation = 1;
 
+var lumiereAmbiante = true;
+
 
 //SHADERS
 function initGL(canvas)
@@ -124,8 +126,7 @@ function initShaders()
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
 
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
-    {
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
         alert("Could not initialise shaders");
     }
 
@@ -137,9 +138,17 @@ function initShaders()
     shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
     gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
+    shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+    gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
     shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
     shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+    shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
     shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+    shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
+    shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+    shaderProgram.pointLightingLocationUniform = gl.getUniformLocation(shaderProgram, "uPointLightingLocation");
+    shaderProgram.pointLightingColorUniform = gl.getUniformLocation(shaderProgram, "uPointLightingColor");
 }
 
 function mvPushMatrix()
@@ -162,6 +171,10 @@ function setMatrixUniforms()
 {
     gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
     gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+    var normalMatrix = mat3.create();
+    mat4.toInverseMat3(mvMatrix, normalMatrix);
+    mat3.transpose(normalMatrix);
+    gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
 }
 
 
@@ -173,6 +186,10 @@ function initTexture()
     createTexture(2,"./img/moon.gif");
     createTexture(3,"./img/mars.jpg");
     createTexture(4,"./img/stars.jpg");
+    createTexture(5,"./img/jupiter.jpg");
+    createTexture(6,"./img/mercure.jpg");
+    createTexture(7,"./img/saturn.png");
+    createTexture(8,"./img/venus.jpg");
     //textures[0].image.src = "./img/sun.jpg";
     //textures[1].image.src = "./img/earth.jpg";
     //textures[2].image.src = "./img/moon.gif";
@@ -217,6 +234,15 @@ function pol2Cart(longi, lat, resLongi, resLat)
     ];
 }
 
+function pol2CartNormal(longi, lat, dir)
+{
+    return [
+        Math.cos(degToRad(lat))*Math.sin(degToRad(longi))*dir,
+        Math.sin(degToRad(lat))*dir,
+        Math.cos(degToRad(lat))*Math.cos(degToRad(longi))*dir
+    ];
+}
+
 function drawScene()
 {
     gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -236,7 +262,11 @@ function drawScene()
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textures[0]);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
-
+    if(lumiereAmbiante) {
+        gl.uniform3f(shaderProgram.ambientColorUniform, $('#intensityLight').val(), $('#intensityLight').val(), $('#intensityLight').val());
+    }else {
+        gl.uniform3f(shaderProgram.ambientColorUniform, 0, 0, 0);
+    }
     rootObject.draw();
 }
 
@@ -253,7 +283,7 @@ function initWorldObjects()
     skybox.coefRevolution = 0;
 
 
-    rootObject = new sphere(null);
+    rootObject = new sphere(null,-1);
     rootObject.translate([0,0,0]);
     objects.push(rootObject);
     rootObject.texture = textures[0];
@@ -265,8 +295,8 @@ function initWorldObjects()
     objects.push(earth);
     earth.translate([3,0,0]);
     earth.texture = textures[1];
-    earth.scale([0.8,0.8,0.8]);
-    earth.coefOrbite = 0.5;
+    earth.scale([0.5,0.5,0.5]);
+    earth.coefOrbite = 0.4;
     earth.coefRevolution = 2;
 
     var moon = new sphere(earth);
@@ -281,9 +311,41 @@ function initWorldObjects()
     objects.push(mars);
     mars.translate([5,0,0]);
     mars.texture = textures[3];
-    mars.scale([0.7,0.7,0.7]);
-    mars.coefOrbite = 3;
+    mars.scale([0.4,0.4,0.4]);
+    mars.coefOrbite = 1;
     mars.coefRevolution = 4;
+
+    var jupiter = new sphere(rootObject);
+    objects.push(jupiter);
+    jupiter.translate([8,0,0]);
+    jupiter.texture = textures[5];
+    jupiter.scale([0.7,0.7,0.7]);
+    jupiter.coefOrbite = 0.5;
+    jupiter.coefRevolution = 3;
+
+    var mercure = new sphere(rootObject);
+    objects.push(jupiter);
+    mercure.translate([10,0,0]);
+    mercure.texture = textures[6];
+    mercure.scale([0.6,0.6,0.6]);
+    mercure.coefOrbite = 0.7;
+    mercure.coefRevolution = 12;
+
+    var saturn = new sphere(rootObject);
+    objects.push(jupiter);
+    saturn.translate([12,0,0]);
+    saturn.texture = textures[7];
+    saturn.scale([0.8,0.8,0.8]);
+    saturn.coefOrbite = 0.2;
+    saturn.coefRevolution = 2;
+
+    var venus = new sphere(rootObject);
+    objects.push(jupiter);
+    venus.translate([15,0,0]);
+    venus.texture = textures[8];
+    venus.scale([0.2,0.2,0.2]);
+    venus.coefOrbite = 1;
+    venus.coefRevolution = 2;
 
     return rootObject;
 }
@@ -416,8 +478,13 @@ function handleClick(checkMesh)
 {
     switch(checkMesh.value)
     {
-        case 'triangle':
-            toggleTriangle = checkMesh.checked;
+        case 'lumiere':
+            lumiereAmbiante = checkMesh.checked;
+            if (lumiereAmbiante){
+                $('#intensityLumiereAmbiante').removeClass('hidden');
+            }else {
+                $('#intensityLumiereAmbiante').addClass('hidden');
+            }
             break;
         case 'square':
             toggleSquare = checkMesh.checked;
